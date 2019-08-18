@@ -3,7 +3,8 @@ function FITSPhase2L(varargin)
     cargs = varargin ;
     optargin = size(varargin,2);
 
-    passarge2 ;
+    passarge2L ;
+    %isDelete
     disp('Long can only run sample wise');
     colWise = 0;
     dataX = csvread(dataName) ;
@@ -34,6 +35,7 @@ function FITSPhase2L(varargin)
            file_dict(start).name = c{1};
            file_dict(start).rfile = 0;
            file_dict(start).file = 0;
+           file_dict(start).realName = index_files(t).name;
            try
                mc = strsplit(file_dict(start).name,'_');
                formed_file_name = strcat('fitsL_',file_dict(start).name,'_',mc{size(mc,2)},'.mat');
@@ -86,6 +88,20 @@ function FITSPhase2L(varargin)
     matrixFormation(m,n,file_dict,matrixUsage,corrStruct,name2save,total);
     %toc
     %save(strcat(name2save,'_.mat'),'final_imputed','-v7.3');
+    if (isDelete == 1)
+      for i = 1:total
+         if (file_dict(i).file == 1)
+            %formed_file_name = strcat('fitsL_',file_dict(start).name,'_',mc{size(mc,2)},'.mat');
+            delete(file_dict(i).fileName); 
+         end
+        
+         if (file_dict(i).rfile > 0)
+            %formed_file_name = strcat('fitsL_',file_dict(start).name,'_',mc{size(mc,2)},'.mat');
+            delete(file_dict(i).rfileName);
+         end
+         delete(file_dict(i).realName)
+      end
+    end
 end
 
 function matrixUsage = fillMatrixUsage(matrixUsage,corrStruct,count)

@@ -1,0 +1,41 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2016 The MathWorks, Inc.
+                   R2016b (9.1.0.441655) 64-bit (glnxa64)
+                             September 7, 2016
+
+ 
+To get started, type one of these: helpwin, helpdesk, or demo.
+For product information, visit www.mathworks.com.
+ 
+input=inputCountFile    filename of read-counts csv file, no need to provide genomic location
+             
+output=OUPUTfile    filename of imputed matrix to be saved
+            
+maxLevel= maxAllowed_level_of_tree  maximum depth of tree  
+        
+warning : No output file name given therefore file save with default name FITSOutput_<??>
+
+runID =
+
+      126755
+
+
+maxAllowedLevel =
+
+     4
+
+
+rank =
+
+     6
+
+
+allowedLevel =
+
+     2
+
+[Warning: Variable 'final_imputed' was not saved. For variables larger than 2GB
+use MAT-file version 7.3 or later.] 
+[> In FITSPhase1Start (line 114)
+  In FITSPhase1 (line 25)] 
