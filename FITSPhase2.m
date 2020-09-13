@@ -4,8 +4,8 @@ function FITSPhase2(varargin)
     optargin = size(varargin,2);
 
     passarge2 ;
-    files = dir(strcat(name2save,'_*.mat'));
-    dataX = csvread(dataName) ;
+    files = dir(strcat(name2save,'_complete_*.mat'));
+    dataX = load(dataName) ;
     M = mean(dataX);
     dataX = dataX./(M + 0.00000001);
     dataX = dataX';
@@ -13,26 +13,31 @@ function FITSPhase2(varargin)
     trees=struct;
     start=1;
     for t = 1:size(files,1)
+      if not(contains(files(t).name , '_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'))
         try
-           obj = load(files(t).name);
+           obj = load(strcat(files(t).folder ,'/', files(t).name));
            trees(start).val = obj.final_imputed;
            %size(trees(start).val);
            start = start+1;
         catch
            %numOfTrees = numOfTrees-1;
-           disp(files(t).name);
+           disp(strcat(files(t).folder ,'/', files(t).name));
            disp('This is either corrupted or not exist');
         end
+      end
     end
     [row, col] = size(dataX);
     if (topk > start-1)
        topk = start-1;
     end
-    maxCorrelated(dataX,trees,start-1,topk,colWise,name2save);
+    maxCorrelated(dataX,trees,start-1,topk,colWise,name2save,csv_or_tab);
     %save(strcat(name2save,'_.mat'),'final_imputed','-v7.3');
+    if isDelete == 1
+        uu = dropAllInternalFile(name2save)
+    end
 end
 
-function res = maxCorrelated(mOriginal,mtree,count,topk,colWise,name2save)
+function res = maxCorrelated(mOriginal,mtree,count,topk,colWise,name2save,csv_or_tab)
     if colWise==1
         final_imputed = maxCorrelatedCol(mOriginal,mtree,count,topk);
         %save(strcat(name2save,'.mat'),'final_imputed','-v7.3');
@@ -41,7 +46,12 @@ function res = maxCorrelated(mOriginal,mtree,count,topk,colWise,name2save)
         final_imputed = maxCorrelatedRow(mOriginal,mtree,count,topk);
         %save(strcat(name2save,'.mat'),'final_imputed','-v7.3');
     end
-    csvwrite(strcat(name2save,'.csv'),final_imputed')
+
+    if csv_or_tab ~= 'tab'
+    	csvwrite(strcat(name2save,'.csv'),final_imputed');
+    else
+    	writematrix(final_imputed',strcat(name2save,'.txt'),'Delimiter','tab');
+    end
 end
 
 % correlation between features
@@ -63,6 +73,15 @@ function res = maxCorrelatedCol(mOriginal,mtree,count,topk)
     end
 end
 
+function dropDone = dropAllInternalFile(name2save)
+    dropDone = 0;
+    files = dir(strcat(name2save,'_complete_*.mat'));
+    for t = 1:size(files,1)
+        disp('deleting')
+        strcat(files(t).folder,'/',files(t).name)
+        delete(strcat(files(t).folder,'/',files(t).name));
+    end
+end
 % %correlation between samples
 function res = maxCorrelatedRow(mOriginal,mtree,count,topk)
     [row, col] = size(mOriginal);

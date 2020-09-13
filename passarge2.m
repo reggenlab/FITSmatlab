@@ -2,7 +2,11 @@ dataName = 'xyz' ;
 topk = 3 ;
 colWise = 0;
 name2save = 'FITSOutput';
-vartrack = zeros(4 ,1) ;
+vartrack = zeros(6 ,1) ;
+isDelete = 0;
+csv_or_tab = 'csv';
+
+
 
 for i = 1:optargin
     checkt = textscan( cargs{i} , '%s' , 'delimiter' , '=') ;
@@ -28,6 +32,18 @@ for i = 1:optargin
         colWise  = tempd{1}
        vartrack(4) = 1 ;
     end
+    if (strcmp( checkt{1}{1} , 'remove' ) == 1)
+        tempd =  textscan(checkt{1}{2} , '%d')  ;
+        isDelete  = tempd{1};
+       vartrack(5) = 1 ;
+    end   
+
+
+     if(strcmp( checkt{1}{1}, 'saveformat') == 1)
+	csv_or_tab  = checkt{1}{2};
+	vartrack(6) = 1;
+     end
+
 
 end
 
@@ -45,6 +61,13 @@ disptext = {
 
 'feature= 0/1 default 0 (it compute sample wise correlation<Preffered>) if you want to feature wise correlation then pass one.  '
 '        '
+
+'remove= 0/1 default 0 if you want to remove all mat file saved for phase2l pass value 1.  '
+'	'
+
+'saveformat = ''csv''/''tab'' these format allowed to save output file default(csv) and if you want tab separated file then pass this argument, the result will save with .txt'
+
+
 } ;
 
 

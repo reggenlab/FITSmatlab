@@ -1,28 +1,16 @@
-function FITSPhase1Start(unimpData,maxClusters,msc,aRFSR,maxAllowedLevel,name2save,num )
-   fast = 1;
-    tic
-    %obj = load(dataName);
-    %dataX = obj.dataX;
-    %size(dataX)
+function FITSPhase1StartFast(unimpData,msc,aRFSR,name2save,num)
+   maxAllowedLevel = 4;
+   maxClusters = 4;
     unimpData=log(unimpData+1.01);
-    [ux,uy] = size(unimpData)
-    %unimpData = dataX;
-    %clear dataX;
+    [ux,uy] = size(unimpData);
     rng shuffle;
-    %trees=struct;
-    rank = randi([3,7]);
-    %tic
-    disp('initial')
-    
+    rank = randi([3,6]);
     Xrec = istCalc(unimpData,rank);
     final_imputed = Xrec;
-    %toc
     save(strcat(name2save,'_r_',num2str(rank),'.mat'),'final_imputed','-v7.3');
     impData = Xrec;
     clear final_imputed;
     clear Xrec;
-
-    %clear dataX;
     RFSR=aRFSR;
     level = 1;
     flag=1;
@@ -31,29 +19,32 @@ function FITSPhase1Start(unimpData,maxClusters,msc,aRFSR,maxAllowedLevel,name2sa
     cluster = maxClusters; % help in keeping track of maxclusters allowed in each level
     %class(maxAllowedLevel)
     allowedLevel = randi([2,maxAllowedLevel]); 
-    while (level<=allowedLevel) && (flag~=0)
-        %tic
-        disp('level')
-        level
-        clusters(level).val =  clusterCount(cluster);
-        if level==1
-            while 1
-                records(level).predictedLabel=kclusters(impData,clusters(level).val,RFSR);
-                %%Data Check function should be implemented here
-                flag = checkClustersMinCount(records(level).predictedLabel,clusters(level).val,msc);
-                if flag~=0
-                    break;
-                else
-                    clusters(level).val=clusters(level).val-1;
-                end
-            end
-            for i = 1:clusters(level).val
+    
+    %For level 1
+    level_1_cluster = clusterCount(cluster);
+    while 1
+        predictedLabel=kclusters(impData,level_1_cluster,RFSR);
+        %%Data Check function should be implemented here
+        flag = checkClustersMinCount(predictedLabel,level_1_cluster,msc);
+        if flag~=0
+            break;
+        else
+            level_1_cluster=level_1_cluster-1;
+        end
+    end
+    parfor i = 1:level_1_cluster
+        c(i).val = find(predictedLabel==i);
+        unimpdata(i).val = unimpData(c(i).val,:);
+        vec(i).val = find(~any(unimpdata(i).val, 1));
+    end
+            parfor i = 1:clusters(level).val
                 records(level).c(i).val = find(records(level).predictedLabel==i);
                 records(level).unimpdata(i).val = unimpData(records(level).c(i).val,:);
                 records(level).vec(i).val = find(~any(records(level).unimpdata(i).val, 1));%vector for every data to know column/sites indices having all zero
                 records(level).data(i).val = records(level).unimpdata(i).val; %making duplicate matrix
                 records(level).data(i).val(:,records(level).vec(i).val) = []; %delete columns having all zero
-            
+                disp('half done')
+                i
                 records(level).unimpdata(i).filename = strcat(name2save,'_unimpdata_level_',num2str(level),'_i_',num2str(i)); 
                 records(level).unimpdata(i).val = dumpData(records(level).unimpdata(i).filename,records(level).unimpdata(i).val,1);
                 
@@ -65,70 +56,8 @@ function FITSPhase1Start(unimpData,maxClusters,msc,aRFSR,maxAllowedLevel,name2sa
             clear impData;
             clear unimpData;
             records(level).predictedLabel = 0;
-            disp('level_complete')
 
-        else
-            try
-                disp('level_internal')
-        
-               records(level).predictedLabel=struct;
-               records(level).predictedLabel=clusterPrediction(1,level,clusters,records(level-1).data,RFSR);
-            
-            
-               records(level).c=clusterMaking(1,level,clusters,records(level).predictedLabel);
-
-               records(level).unimpdata = rawDataClusterMaking(1,level,clusters,records(level-1).unimpdata,records(level).c);
-               records(level).vec = vecFormation(1,level,clusters,records(level).unimpdata);
-               records(level).data = dataFormation(1,level,clusters,records(level).unimpdata,records(level).vec, records(level-1).data);
-               [records(level).data records(level).vec] = imputationOperation(rank,1,level,clusters,records(level).data,records(level-1).data,records(level).vec,records(level-1).vec,records(level).c);
-                disp('level_internal_complete')
-        
-            catch
-               flag = 0
-            end
-            records(level).predictedLabel = 0; 
-        end
-        cluster = ceil(clusters(level).val/2);
-        if cluster<2
-            cluster=2;
-        end
-        if (flag~=0)
-          level = level + 1;
-        end
-        %toc
-    end
-    %input('donot press anything')
-    %input('last time not press')
-    level=level-1;
-    last = level;
-    prev = last;
-    disp('backtrace')
-    while(level>=0)
-        %tic
-        disp('level')
-        level
-        if last==level
-            records(level).newdata = newdataInitialization(1,level,clusters,records(level).data,uy);
-            records(level).vec_negation = vec_negationInitialization(1,level,clusters,records(level).vec,uy);
-            records(level).newdata = newdataMaking(1,level,clusters,records(level).newdata,records(level).vec_negation,records(level).data);
-        elseif level==0
-            pre_final_imputed_new = zeros(ux,uy);
-            for i = 1:clusters(1).val
-            	pre_final_imputed_new(records(prev).c(i).val,:) = loadData(records(prev).newdata(i).filename, 0, 1);
-            end
-        else
-            records(level).newdata = newdataMerging(1,prev,clusters,records(prev).newdata,records(level).data,records(prev).c,uy);
-        end
-        prev = level ; 
-        level = level - 1;
-        %toc
-    end
-    final_imputed = zeros(ux,uy);
-    final_imputed = pre_final_imputed_new;
-    kk= dropAllInternalFile(name2save);
-    name2save = strcat(name2save,'_',num2str(num),'.mat');
-    save(name2save,'final_imputed','-v7.3');
-%toc
+     
 end
 
 function  z = istCalc(matrix,rank)
@@ -373,9 +302,7 @@ function flag  = checkClustersMinCount(predicted_labels,clusters,msc)
 end
 
 function y = dumpData(name2save, internalData, isReturnZero)
-    save(strcat(name2save,'_internal_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'),'internalData','-v7.3');
-    internal_data_size = size(internalData);
-    save(strcat(name2save,'_internal_size_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'),'internal_data_size','-v7.3');
+    save(strcat(name2save,'_internal.mat'),'internalData','-v6');
     if isReturnZero == 1
         y = 0;
     else
@@ -384,32 +311,18 @@ function y = dumpData(name2save, internalData, isReturnZero)
 end
 
 function y = loadData(name2load, isReturnSize, isDeleteFile)
+    internal_obj = load(strcat(name2load,'_internal.mat'));
     if isReturnSize ~= 0
-        internal_obj = load(strcat(name2load,'_internal_size_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'));
-        y = internal_obj.internal_data_size(isReturnSize);
+        y = size(internal_obj.internalData, isReturnSize);
     else
-        internal_obj = load(strcat(name2load,'_internal_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'));
         y = internal_obj.internalData;
     end
     
     if  isDeleteFile == 1
-        %disp('deleted file')
-        %strcat(name2load,'_internal_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat')
-        delete(strcat(name2load,'_internal_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'));
-        delete(strcat(name2load,'_internal_size_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'));
+        disp('deleted file')
+        strcat(name2load,'_internal.mat')
+        delete(strcat(name2load,'_internal.mat'));
     end
 end
 
-function dropDone = dropAllInternalFile(name2save)
-    dropDone = 0;
-    files = dir(strcat(name2save,'*internal_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'));
-    for t = 1:size(files,1)
-        delete(strcat(files(t).folder,'/',files(t).name));
-    end
-
-    files = dir(strcat(name2save,'*internal_size_chdsffuegfcalwc12123v2rjvgv32hyvfh32yrh.mat'));
-
-     for t = 1:size(files,1)
-	 delete(strcat(files(t).folder,'/',files(t).name));
-     end
-end
+function dropall

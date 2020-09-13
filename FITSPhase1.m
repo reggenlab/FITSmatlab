@@ -14,7 +14,7 @@ function FITSPhase1( varargin )
    %tic
     %disp('read')
     %read csv file row consist of sites and column consists of samples
-    dataX = csvread(dataName) ;
+    dataX = load(dataName);%csvread(dataName) ;
     %toc
     %tic
     %disp('norm')
@@ -22,5 +22,9 @@ function FITSPhase1( varargin )
     dataX = dataX./(M + 0.00000001);
     dataX = dataX';
     %toc
-    FITSPhase1Start(dataX,maxClusters,msc,aRFSR,maxAllowedLevel,name2save,runID);
+    if fast == 0
+        FITSPhase1Start(dataX,maxClusters,msc,aRFSR,maxAllowedLevel,strcat(name2save,'_complete_',num2str(runID)),runID);
+    else
+        FITSPhase1StartFast(dataX,maxClusters,msc,aRFSR,maxAllowedLevel,strcat(name2save,'_complete_',num2str(runID)),runID, fast);
+    end
 end

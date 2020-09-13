@@ -5,8 +5,6 @@ function FITSPhase2L(varargin)
 
     passarge2L ;
     %isDelete
-    %csv_or_tab
-    %exit(0)
     disp('Long can only run sample wise');
     colWise = 0;
     dataX = load(dataName);%csvread(dataName) ;
@@ -44,9 +42,8 @@ function FITSPhase2L(varargin)
            file_dict(start).file = 0;
            file_dict(start).realName = load_filename;%index_files(t).name;
            try
-               mc = strsplit(file_dict(start).name,'_');
+%                mc = strsplit(file_dict(start).name,'_');
 %                formed_file_name = strcat('fitsL_',file_dict(start).name,'_',mc{size(mc,2)},'.mat');
-               formed_file_name = strcat(name2save,'_fitsL',file_dict(start).name,'_',mc{size(mc,2)},'.mat');
                obj = load(formed_file_name);
                if(sum(isnan(obj.final_imputed(:)))==0)
                   file_dict(start).file = 1;
@@ -60,7 +57,7 @@ function FITSPhase2L(varargin)
            end
            for r = 2:6
                try
-                   formed_file_name = strcat(name2save,'_fitsL',file_dict(start).name,'_r_',num2str(r),'.mat');
+                   formed_file_name = strcat('fitsL_',file_dict(start).name,'_r_',num2str(r),'.mat');
                    obj = load(formed_file_name);
                    if(sum(isnan(obj.final_imputed(:)))==0)
                        file_dict(start).rfile = r;
@@ -93,7 +90,7 @@ function FITSPhase2L(varargin)
     [m n] = size(dataX);
     clear dataX;
     %disp('start2');
-    matrixFormation(m,n,file_dict,matrixUsage,corrStruct,name2save,total,csv_or_tab);
+    matrixFormation(m,n,file_dict,matrixUsage,corrStruct,name2save,total);
     %toc
     %save(strcat(name2save,'_.mat'),'final_imputed','-v7.3');
     if (isDelete == 1)
@@ -109,19 +106,6 @@ function FITSPhase2L(varargin)
          end
          delete(file_dict(i).realName)
       end
-    end
-    if isDelete == 1
-        uu = dropAllInternalFile(name2save);
-    end
-end
-
-function dropDone = dropAllInternalFile(name2save)
-    dropDone = 0;
-    files = dir(strcat(name2save,'_fitsL_*.mat'));
-    for t = 1:size(files,1)
-        disp('deleting')
-        strcat(files(t).folder,'/',files(t).name)
-        delete(strcat(files(t).folder,'/',files(t).name));
     end
 end
 
@@ -171,7 +155,7 @@ function res = maxCorrelated(mOriginal,mtree,count,topk,name2save)
     csvwrite(strcat(name2save,'.csv'),final_imputed')
 end
 
-function matrixFormation(m,n,mtree,matrixUsage,corrStruct,name2save,total,csv_or_tab)
+function matrixFormation(m,n,mtree,matrixUsage,corrStruct,name2save,total)
     newMatrix = zeros(m,n);
     for i = 1: total
         if(size(matrixUsage(i).normal,2)>0)
@@ -212,11 +196,7 @@ function matrixFormation(m,n,mtree,matrixUsage,corrStruct,name2save,total,csv_or
             end
         end
     end
-    if csv_or_tab ~= 'tab' 
-    	csvwrite(strcat(name2save,'.csv'),newMatrix');
-    else
-    	writematrix(newMatrix',strcat(name2save,'.txt'),'Delimiter','tab');
-    end
+    csvwrite(strcat(name2save,'.csv'),newMatrix');
 end
 
 % %correlation between samples

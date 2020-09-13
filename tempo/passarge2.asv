@@ -1,10 +1,9 @@
 dataName = 'xyz' ;
 topk = 3 ;
 colWise = 0;
-isDelete = 0;
 name2save = 'FITSOutput';
-vartrack = zeros(6 ,1) ;
-csv_or_tab = 'csv';
+vartrack = zeros(5 ,1) ;
+isDelete = 0;
 
 for i = 1:optargin
     checkt = textscan( cargs{i} , '%s' , 'delimiter' , '=') ;
@@ -21,26 +20,20 @@ for i = 1:optargin
 
     if (strcmp( checkt{1}{1} , 'k' ) == 1)
         tempd =  textscan(checkt{1}{2} , '%d')  ;
-        topk  = tempd{1}    ;
+        topk  = tempd{1}    
        vartrack(3) = 1 ;
     end
 
     if (strcmp( checkt{1}{1} , 'feature' ) == 1)
         tempd =  textscan(checkt{1}{2} , '%d')  ;
-        colWise  = tempd{1};
+        colWise  = tempd{1}
        vartrack(4) = 1 ;
     end
- 
     if (strcmp( checkt{1}{1} , 'remove' ) == 1)
         tempd =  textscan(checkt{1}{2} , '%d')  ;
         isDelete  = tempd{1};
        vartrack(5) = 1 ;
     end   
-
-    if(strcmp( checkt{1}{1}, 'saveformat') == 1)
-	csv_or_tab  = checkt{1}{2};
-	vartrack(6) = 1;
-    end
 
 end
 
@@ -56,10 +49,9 @@ disptext = {
 'k= topk default 3 if you want to make matrix based on top5 then pass k=5  '  
 '        '
 
+'feature= 0/1 default 0 (it compute sample wise correlation<Preffered>) if you want to feature wise correlation then pass one.  '
+'        '
 'remove= 0/1 default 0 if you want to remove all mat file saved for phase2l pass value 1.  '
-'	'
-
-'saveformat = ''csv''/''tab'' these format allowed to save output file default(csv) and if you want tab separated file then pass this argument, the result will save with .txt'
 } ;
 
 
